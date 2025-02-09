@@ -14,6 +14,7 @@ func main() {
 		fmt.Println("  Unredirector:   go run main.go unredirect <short-url>")
 		fmt.Println("  DNS Lookup:     go run main.go dns <domain>")
 		fmt.Println("  Content Fetch:  go run main.go fetch <url>")
+		fmt.Println("  SSL Info:       go run main.go ssl <domain>")
 		os.Exit(1)
 	}
 
@@ -70,8 +71,17 @@ func main() {
 			fmt.Println(info)
 		}
 
+	case "ssl":
+		domain := os.Args[2] // ✅ FIXED
+		result, err := handler.FetchSSLCertificate(domain)
+		if err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
+		fmt.Println(result)
+
 	default:
-		fmt.Println("Invalid command. Use 'whois', 'unredirect', 'dns', or 'fetch'.")
+		fmt.Println("Invalid command. Use 'whois', 'unredirect', 'dns', 'fetch', or 'ssl'.")
 		os.Exit(1)
 	}
 }
