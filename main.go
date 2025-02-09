@@ -3,85 +3,97 @@ package main
 import (
 	"fmt"
 	"os"
-
+	"github.com/spf13/cobra"
 	"you_are_l/handlers"
 )
 
-func main() {
-	if len(os.Args) < 3 {
-		fmt.Println("Usage:")
-		fmt.Println("  WHOIS:          go run main.go whois <full|brief> <domain>")
-		fmt.Println("  Unredirector:   go run main.go unredirect <short-url>")
-		fmt.Println("  DNS Lookup:     go run main.go dns <domain>")
-		fmt.Println("  Content Fetch:  go run main.go fetch <url>")
-		fmt.Println("  SSL Info:       go run main.go ssl <domain>")
-		os.Exit(1)
-	}
+var rootCmd = &cobra.Command{
+	Use:   "you-are-l",
+	Short: "A CLI tool for domain & URL intelligence",
+	Long:  "you-are-l is a command-line tool for performing WHOIS lookups, DNS queries, SSL certificate checks, URL unredirection, and content fetching.",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Use 'you-are-l --help' for available commands.")
+	},
+}
 
-	command := os.Args[1]
-
-	switch command {
-	case "whois":
-		if len(os.Args) < 4 {
-			fmt.Println("Usage: go run main.go whois <full|brief> <domain>")
-			os.Exit(1)
-		}
-		mode := os.Args[2]
-		domain := os.Args[3]
-
+var whoisCmd = &cobra.Command{
+	Use:   "whois [full|brief] <domain>",
+	Short: "Perform a WHOIS lookup",
+	Args:  cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		mode, domain := args[0], args[1]
 		result, err := handler.Whois(domain)
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
+			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
-
 		if mode == "brief" {
 			result = handler.ExtractBrief(result)
 		}
-
 		fmt.Println(result)
+	},
+}
 
-	case "unredirect":
-		shortURL := os.Args[2]
-		finalURL, err := handler.Unredirect(shortURL)
-
+var unredirectCmd = &cobra.Command{
+	Use:   "unredirect <short-url>",
+	Short: "Find the final destination of a shortened URL",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		finalURL, err := handler.Unredirect(args[0])
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-		} else {
-			fmt.Printf("Final URL: %s\n", finalURL)
+			fmt.Println("Error:", err)
+			os.Exit(1)
 		}
+		fmt.Println("Final URL:", finalURL)
+	},
+}
 
-	case "dns":
-		domain := os.Args[2]
-		records, err := handler.GetDNSRecords(domain)
-
+var dnsCmd = &cobra.Command{
+	Use:   "dns <domain>",
+	Short: "Retrieve DNS records for a domain",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		records, err := handler.GetDNSRecords(args[0])
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-		} else {
-			fmt.Println(records)
+			fmt.Println("Error:", err)
+			os.Exit(1)
 		}
+		fmt.Println(records)
+	},
+}
 
-	case "fetch":
-		url := os.Args[2]
-		info, err := handler.FetchContentInfo(url)
-
+var fetchCmd = &cobra.Command{
+	Use:   "fetch <url>",
+	Short: "Fetch metadata and headers from a URL",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		info, err := handler.FetchContentInfo(args[0])
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-		} else {
-			fmt.Println(info)
+			fmt.Println("Error:", err)
+			os.Exit(1)
 		}
+		fmt.Println(info)
+	},
+}
 
-	case "ssl":
-		domain := os.Args[2] // ✅ FIXED
-		result, err := handler.FetchSSLCertificate(domain)
+var sslCmd = &cobra.Command{
+	Use:   "ssl <domain>",
+	Short: "Retrieve SSL certificate details",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		result, err := handler.FetchSSLCertificate(args[0])
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
 		fmt.Println(result)
+	},
+}
 
-	default:
-		fmt.Println("Invalid command. Use 'whois', 'unredirect', 'dns', 'fetch', or 'ssl'.")
+func main() {
+	rootCmd.AddCommand(whoisCmd, unredirectCmd, dnsCmd, fetchCmd, sslCmd)
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }
