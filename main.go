@@ -10,9 +10,10 @@ import (
 func main() {
 	if len(os.Args) < 3 {
 		fmt.Println("Usage:")
-		fmt.Println("  WHOIS:         go run main.go whois <full|brief> <domain>")
-		fmt.Println("  Unredirector:  go run main.go unredirect <short-url>")
-		fmt.Println("  DNS Lookup:    go run main.go dns <domain>")
+		fmt.Println("  WHOIS:          go run main.go whois <full|brief> <domain>")
+		fmt.Println("  Unredirector:   go run main.go unredirect <short-url>")
+		fmt.Println("  DNS Lookup:     go run main.go dns <domain>")
+		fmt.Println("  Content Fetch:  go run main.go fetch <url>")
 		os.Exit(1)
 	}
 
@@ -59,8 +60,18 @@ func main() {
 			fmt.Println(records)
 		}
 
+	case "fetch":
+		url := os.Args[2]
+		info, err := handler.FetchContentInfo(url)
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+		} else {
+			fmt.Println(info)
+		}
+
 	default:
-		fmt.Println("Invalid command. Use 'whois', 'unredirect', or 'dns'.")
+		fmt.Println("Invalid command. Use 'whois', 'unredirect', 'dns', or 'fetch'.")
 		os.Exit(1)
 	}
 }
