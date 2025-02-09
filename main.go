@@ -12,6 +12,7 @@ func main() {
 		fmt.Println("Usage:")
 		fmt.Println("  WHOIS:         go run main.go whois <full|brief> <domain>")
 		fmt.Println("  Unredirector:  go run main.go unredirect <short-url>")
+		fmt.Println("  DNS Lookup:    go run main.go dns <domain>")
 		os.Exit(1)
 	}
 
@@ -48,8 +49,18 @@ func main() {
 			fmt.Printf("Final URL: %s\n", finalURL)
 		}
 
+	case "dns":
+		domain := os.Args[2]
+		records, err := handler.GetDNSRecords(domain)
+
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+		} else {
+			fmt.Println(records)
+		}
+
 	default:
-		fmt.Println("Invalid command. Use 'whois' or 'unredirect'.")
+		fmt.Println("Invalid command. Use 'whois', 'unredirect', or 'dns'.")
 		os.Exit(1)
 	}
 }
